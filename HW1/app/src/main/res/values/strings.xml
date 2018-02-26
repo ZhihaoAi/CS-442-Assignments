@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Converter - Zhihao Ai</string>
+    <string name="title">Conversion:</string>
+    <string name="F2C">Fahrenheit to Celsius</string>
+    <string name="C2F">Celsius to Fahrenheit</string>
+    <string name="eq">=</string>
+    <string name="convert">Convert</string>
+    <string name="temperature">Temperature</string>
+</resources>
