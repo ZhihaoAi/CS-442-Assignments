@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Multi Notes - Zhihao Ai</string>
+    <string name="main_menu_info_title">info</string>
+    <string name="main_menu_edit_title">edit</string>
+    <string name="info_title">Multi Notes</string>
+    <string name="info_copyright">&#169; 2018, Zhihao Ai</string>
+    <string name="info_version">Version 1.0</string>
+    <string name="editContentHint">Add notes..</string>
+    <string name="editTitleHint">Please enter the title here..</string>
+    <string name="edit_menu_save_title">save</string>
+
+    <string name="file_name">AllNotes.json</string>
+    <string name="encoding">UTF-8</string>
+
+    <string name="no_file">No file was found.</string>
+    <string name="tmp_file_name">CurrentNote.json</string>
+</resources>
