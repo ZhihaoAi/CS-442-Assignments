@@ -61,4 +61,10 @@ public class Stock implements Serializable{
     public void setPercent(double percent) {
         this.percent = percent;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Symbol: %s; Company Name: %s; Price: %f; Change: %f; Change Percent: %f",
+                symbol, companyName, price, change, percent);
+    }
 }

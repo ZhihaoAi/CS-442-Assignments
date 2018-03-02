@@ -68,7 +68,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void getSearchResult(String symbol, String companyName) {
-        Toast.makeText(this, String.format("%s: %s", symbol, companyName), Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, String.format("%s: %s", symbol, companyName), Toast.LENGTH_LONG).show();
+        new AsyncGetFinancialData(this).execute(symbol, companyName);
+    }
+
+    public void addNewStock(Stock stock){
+        Toast.makeText(this, stock.toString(), Toast.LENGTH_LONG).show();
     }
 
     @Override
