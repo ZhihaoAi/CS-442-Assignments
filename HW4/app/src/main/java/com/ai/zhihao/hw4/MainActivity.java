@@ -2,6 +2,7 @@ package com.ai.zhihao.hw4;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.DrawableRes;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -32,6 +34,8 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView recyclerView;
 
     private StocksAdapter stocksAdapter;
+
+    private DBHandler dbHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,10 +55,20 @@ public class MainActivity extends AppCompatActivity
                 doRefresh();
             }
         });
+
+        dbHandler = new DBHandler(this);
+        dbHandler.dumpDbToLog();
+        //ArrayList<String[]> list = dbHandler.loadStocks();
+        // stub - update stockList
+        stocksAdapter.notifyDataSetChanged();
     }
 
     private void doRefresh() {
         Toast.makeText(this, "Refreshed", Toast.LENGTH_SHORT).show();
+    }
+
+    public void getSearchResult(String symbol, String companyName) {
+        Toast.makeText(this, String.format("%s: %s", symbol, companyName), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -67,29 +81,27 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
                 final EditText et = new EditText(this);
                 et.setInputType(InputType.TYPE_CLASS_TEXT);
                 et.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
                 et.setGravity(Gravity.CENTER_HORIZONTAL);
 
-                builder.setTitle("Stock Selection")
+                new AlertDialog.Builder(this)
+                        .setTitle("Stock Selection")
                         .setMessage("Please enter a Stock Symbol:")
                         .setView(et)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                Toast.makeText(MainActivity.this, et.getText().toString(), Toast.LENGTH_SHORT).show();
+                                new AsyncSearch(MainActivity.this).execute(et.getText().toString());
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
                             }
-                        });
-
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                        })
+                        .create()
+                        .show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
