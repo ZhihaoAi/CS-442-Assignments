@@ -26,6 +26,7 @@ public class AsyncSearch extends AsyncTask<String, Void, String> {
     private static final String TAG = "AsyncSearch";
     private MainActivity ma;
     private HashMap<String, String> stockData = new HashMap<>();
+    private String stockJSON;
 
     private final String stockURL = "http://d.yimg.com/aq/autoc?region=US&lang=en-US";
 
@@ -61,13 +62,16 @@ public class AsyncSearch extends AsyncTask<String, Void, String> {
             return null;
         }
 
-        parseJSON(sb.toString());
+        stockJSON = sb.toString();
+
         return keys[0];
     }
 
     @Override
     protected void onPostExecute(String user_input) {
         Log.d(TAG, "onPostExecute: ");
+
+        parseJSON(stockJSON);
 
         if (stockData.isEmpty()) {
             new AlertDialog.Builder(ma)
