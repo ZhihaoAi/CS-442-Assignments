@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity
                 .setMessage("Delete Stock Symbol " + s.getSymbol() + "?")
                 .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Toast.makeText(view.getContext(), "Stock Symbol" + s.getSymbol() + "' deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(view.getContext(), "Stock Symbol " + s.getSymbol() + " deleted", Toast.LENGTH_SHORT).show();
                         dbHandler.deleteStock(s.getSymbol());
                         stockList.remove(pos);
                         stocksAdapter.notifyDataSetChanged();

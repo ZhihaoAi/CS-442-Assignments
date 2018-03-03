@@ -3,7 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@android:color/black">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.25" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
 
     <TextView
         android:id="@+id/rowSymbol"
@@ -12,6 +27,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:textAlignment="viewStart"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,19 +38,21 @@
         android:id="@+id/rowPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="66dp"
+        android:layout_marginStart="16dp"
+        android:textSize="18sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/rowSymbol"
-        app:layout_constraintStart_toEndOf="@+id/rowSymbol"
+        app:layout_constraintStart_toStartOf="@+id/guideline1"
         tools:text="100.00" />
 
     <TextView
         android:id="@+id/rowChange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="66dp"
+        android:layout_marginStart="16dp"
+        android:textSize="18sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/rowPrice"
-        app:layout_constraintStart_toEndOf="@+id/rowPrice"
-        tools:text="0.10 (0.10%)" />
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        tools:text="\u25b2 0.10 (0.10%)" />
 
     <TextView
         android:id="@+id/rowCompanyName"
