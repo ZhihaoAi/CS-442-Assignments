@@ -29,65 +29,46 @@ public class AsyncSearch extends AsyncTask<String, Void, String> {
     private String stockJSON;
 
     private final String stockURL = "http://d.yimg.com/aq/autoc?region=US&lang=en-US";
+    private int responseCode;
 
     public AsyncSearch(MainActivity ma) {
         this.ma = ma;
     }
 
     @Override
-    protected String doInBackground(String... keys) {
-        Uri.Builder buildURL = Uri.parse(stockURL).buildUpon();
-        buildURL.appendQueryParameter("query", keys[0]);
-        String urlToUse = buildURL.build().toString();
-        Log.d(TAG, "doInBackground: " + urlToUse);
-
-        StringBuilder sb = new StringBuilder();
-        try {
-            URL url = new URL(urlToUse);
-
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            InputStream is = conn.getInputStream();
-            BufferedReader reader = new BufferedReader((new InputStreamReader(is)));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-
-            Log.d(TAG, "doInBackground: " + sb.toString());
-
-        } catch (Exception e) {
-            Log.e(TAG, "doInBackground: ", e);
-            return null;
-        }
-
-        stockJSON = sb.toString();
-
-        return keys[0];
-    }
-
-    @Override
     protected void onPostExecute(String user_input) {
         Log.d(TAG, "onPostExecute: ");
 
-        parseJSON(stockJSON);
-
-        if (stockData.isEmpty()) {
+        // 404 not found
+        if (responseCode != 200) {
             new AlertDialog.Builder(ma)
                     .setTitle("Symbol Not Found: " + user_input)
-                    .setMessage("Please check your spelling.")
+                    .setMessage("404 Error")
                     .create()
                     .show();
             return;
         }
 
+        parseJSON(stockJSON);
+
+        // Nothing found based on user input
+        if (stockData.isEmpty()){
+            new AlertDialog.Builder(ma)
+                    .setTitle("Symbol Not Found: " + user_input)
+                    .setMessage("Cannot find symbol on d.yimg.com")
+                    .create()
+                    .show();
+            return;
+        }
+
+        // Only one result
         if (stockData.size() == 1) {
             String symbol = stockData.keySet().toArray()[0].toString();
             ma.getSearchResult(symbol, stockData.get(symbol));
             return;
         }
 
+        // Multiple results
         final String[] options = new String[stockData.size()];
         int i = 0;
         for (String s : stockData.keySet())
@@ -108,7 +89,42 @@ public class AsyncSearch extends AsyncTask<String, Void, String> {
                 })
                 .create()
                 .show();
+    }
 
+    @Override
+    protected String doInBackground(String... keys) {
+        Uri.Builder buildURL = Uri.parse(stockURL).buildUpon();
+        buildURL.appendQueryParameter("query", keys[0]);
+        String urlToUse = buildURL.build().toString();
+        Log.d(TAG, "doInBackground: " + urlToUse);
+
+        StringBuilder sb = new StringBuilder();
+        try {
+            URL url = new URL(urlToUse);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            Log.d(TAG, "doInBackground: Response code = " + conn.getResponseCode() + ", " + conn.getResponseMessage());
+            responseCode = conn.getResponseCode();
+            if (responseCode != 200)
+                return keys[0];
+
+            conn.setRequestMethod("GET");
+            InputStream is = conn.getInputStream();
+            BufferedReader reader = new BufferedReader((new InputStreamReader(is)));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+
+            stockJSON = sb.toString();
+            Log.d(TAG, "doInBackground: " + sb.toString());
+
+        } catch (Exception e) {
+            Log.e(TAG, "doInBackground: ", e);
+        }
+
+        return keys[0];
     }
 
     private void parseJSON(String jsonString) {
@@ -120,18 +136,20 @@ public class AsyncSearch extends AsyncTask<String, Void, String> {
 
             for (int i = 0; i < results.length(); i++) {
                 JSONObject stockJSON = (JSONObject) results.get(i);
-                if (!stockJSON.getString("type").equals("S") || stockJSON.getString("symbol").contains("."))
+                if (!stockJSON.getString("type").equals("S")) {
                     continue;
+                } else if (stockJSON.getString("symbol").contains(".")) {
+                    continue;
+                }
                 stockData.put(stockJSON.getString("symbol"), stockJSON.getString("name"));
             }
         } catch (JSONException e) {
             Log.e(TAG, "parseJSON: ", e);
         }
 
-//        log the valid stocks
-        for (String stock : stockData.keySet()) {
+        // Log valid stocks
+        for (String stock : stockData.keySet())
             Log.d(TAG, "parseJSON: " + stock + ": " + stockData.get(stock));
-        }
 
     }
 }

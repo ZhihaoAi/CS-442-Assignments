@@ -1,11 +1,9 @@
 package com.ai.zhihao.hw4;
 
-import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -18,7 +16,7 @@ import java.net.URL;
  * Created by zhihaoai on 3/2/18.
  */
 
-public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
+public class AsyncGetFinancialData extends AsyncTask<String, Void, String> {
 
     private static final String TAG = "AsyncGetPrice";
     private MainActivity ma;
@@ -30,13 +28,45 @@ public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
     private String financialJSON;
 
     private final String financialURL = "https://api.iextrading.com/1.0/stock/";
+    private int responseCode;
 
     public AsyncGetFinancialData(MainActivity ma) {
         this.ma = ma;
     }
 
     @Override
-    protected Void doInBackground(String... keys) {
+    protected void onPostExecute(String s) {
+        Log.d(TAG, "onPostExecute: ");
+
+        // Nothing found based on the symbol
+        if (responseCode != 200) {
+            new AlertDialog.Builder(ma)
+                    .setTitle("Symbol Not Found: " + symbol)
+                    .setMessage("Cannot find symbol on iextrading.com.")
+                    .create()
+                    .show();
+            return;
+        }
+
+        parseJSON(financialJSON);
+        // Symbols doesn't match. Server problem.
+        if (price == -1) {
+            new AlertDialog.Builder(ma)
+                    .setTitle("Symbol Not Found: " + symbol)
+                    .setMessage("iextrading.com is not returning data for the symbol requested.")
+                    .create()
+                    .show();
+            return;
+        }
+
+        Stock stock = new Stock(symbol, companyName, price, change, percent);
+        Log.d(TAG, "onPostExecute: stock = " + stock);
+
+        ma.addNewStock(stock);
+    }
+
+    @Override
+    protected String doInBackground(String... keys) {
         symbol = keys[0];
         companyName = keys[1];
         String urlToUse = financialURL + symbol + "/quote";
@@ -47,6 +77,11 @@ public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
             URL url = new URL(urlToUse);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            Log.d(TAG, "doInBackground: Response code = " + conn.getResponseCode() + ", " + conn.getResponseMessage());
+            responseCode = conn.getResponseCode();
+            if (responseCode != 200)
+                return symbol;
+
             conn.setRequestMethod("GET");
             InputStream is = conn.getInputStream();
             BufferedReader reader = new BufferedReader((new InputStreamReader(is)));
@@ -56,28 +91,14 @@ public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
                 sb.append(line).append('\n');
             }
 
+            financialJSON = sb.toString();
             Log.d(TAG, "doInBackground: " + sb.toString());
 
         } catch (Exception e) {
             Log.e(TAG, "doInBackground: ", e);
-            return null;
         }
 
-        financialJSON = sb.toString();
-        return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void s) {
-        super.onPostExecute(s);
-
-        parseJSON(financialJSON);
-
-        // stub - check if get a response, assuming yes
-
-        Stock stock = new Stock(symbol, companyName, price, change, percent);
-
-        ma.addNewStock(stock);
+        return symbol;
     }
 
     private void parseJSON(String jsonString) {
@@ -85,9 +106,8 @@ public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
         try {
             JSONObject results = new JSONObject(jsonString);
 
-            String symbol = results.getString("symbol");
-            if (!symbol.equals(symbol)){
-                // stub - do something if symbol doesn't match
+            if (!symbol.equals(results.getString("symbol"))){
+                price = -1;
                 Log.d(TAG, "parseJSON: symbol doesn't match");
                 return;
             }
@@ -99,7 +119,6 @@ public class AsyncGetFinancialData extends AsyncTask<String, Void, Void> {
         } catch (Exception e) {
             Log.e(TAG, "parseJSON: ", e);
         }
-
 
     }
 }

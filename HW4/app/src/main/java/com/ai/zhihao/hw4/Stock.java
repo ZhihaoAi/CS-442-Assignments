@@ -1,12 +1,14 @@
 package com.ai.zhihao.hw4;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
  * Created by zhihaoai on 2/25/18.
  */
 
-public class Stock implements Serializable{
+public class Stock implements Serializable, Comparable<Stock>{
 
     private String symbol;
     private String companyName;
@@ -66,5 +68,10 @@ public class Stock implements Serializable{
     public String toString() {
         return String.format("Symbol: %s; Company Name: %s; Price: %f; Change: %f; Change Percent: %f",
                 symbol, companyName, price, change, percent);
+    }
+
+    @Override
+    public int compareTo(@NonNull Stock stock) {
+        return this.symbol.compareTo(stock.symbol);
     }
 }

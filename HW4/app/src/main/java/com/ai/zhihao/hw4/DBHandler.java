@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by zhihaoai on 3/1/18.
@@ -24,9 +25,10 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String SYMBOL = "StockSymbol";
     private static final String COMPANY = "CompanyName";
 
-    private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "("
-            + SYMBOL + "TEXT not null unique,"
-            + COMPANY + "TEXT not null)";
+    private static final String SQL_CREATE_TABLE =
+            "CREATE TABLE " + TABLE_NAME + " ("
+                    + SYMBOL + " TEXT not null unique, "
+                    + COMPANY + " TEXT not null)";
 
     private SQLiteDatabase database;
 
@@ -46,13 +48,12 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     public void addStock(Stock stock) {
-        Log.d(TAG, "addStock: Adding " + stock.getSymbol());
-
         ContentValues values = new ContentValues();
         values.put(SYMBOL, stock.getSymbol());
         values.put(COMPANY, stock.getCompanyName());
 
         database.insert(TABLE_NAME, null, values);
+        dumpDbToLog();
 
         Log.d(TAG, "addStock: Add Complete");
     }
@@ -60,15 +61,30 @@ public class DBHandler extends SQLiteOpenHelper {
     public void deleteStock(String symbol) {
         Log.d(TAG, "deleteStock: Deleting Stock " + symbol);
 
-        int cnt = database.delete(TABLE_NAME, "SYMBOL = ?", new String[] { symbol });
+        int cnt = database.delete(TABLE_NAME, SYMBOL + " = ?", new String[] { symbol });
 
         Log.d(TAG, "deleteStock: " + cnt);
+    }
+
+    public boolean existsStock(String symbol) {
+        Log.d(TAG, "findStock: ");
+
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + SYMBOL + " = \"" + symbol + "\"", null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+            if (cursor.getCount() == 1 && cursor.getString(0).equals(symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 
     public ArrayList<String[]> loadStocks() {
         Log.d(TAG, " loadStocks: Load all symbol-company entries from DB");
         ArrayList<String[]> stocks = new ArrayList<>();
-        Cursor cursor = database.query(TABLE_NAME, new String[] {SYMBOL, COMPANY}, null, null, null, null, null);;
+        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME, null);
         if (cursor != null) {
             cursor.moveToFirst();
             for (int i = 0; i < cursor.getCount(); i++) {
@@ -93,13 +109,17 @@ public class DBHandler extends SQLiteOpenHelper {
                 String company = cursor.getString(1);
                 Log.d(TAG, "dumpDbToLog: " +
                         String.format("%s %-6s", SYMBOL + ":", symbol) +
-                        String.format("%s %-18s", COMPANY + ":", symbol));
+                        String.format("%s %-18s", COMPANY + ":", company));
                 cursor.moveToNext();
             }
             cursor.close();
         }
 
         Log.d(TAG, "dumpDbToLog: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+    }
+
+    public void shutDown(){
+        database.close();
     }
 
 }

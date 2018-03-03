@@ -1,7 +1,11 @@
 package com.ai.zhihao.hw4;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.support.annotation.DrawableRes;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -20,13 +24,15 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-    implements View.OnClickListener, View.OnLongClickListener{
+        implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "MainActivity";
+    private static final String marketwatchURL = "http://www.marketwatch.com/investing/stock/";
 
     private List<Stock> stockList = new ArrayList<>();
 
@@ -58,13 +64,39 @@ public class MainActivity extends AppCompatActivity
 
         dbHandler = new DBHandler(this);
         dbHandler.dumpDbToLog();
-        //ArrayList<String[]> list = dbHandler.loadStocks();
-        // stub - update stockList
-        stocksAdapter.notifyDataSetChanged();
+
+        if (isNetworkConnected()) {
+            ArrayList<String[]> list = dbHandler.loadStocks();
+            stockList.clear();
+            for (String[] strings : list) {
+                new AsyncGetFinancialData(this).execute(strings[0], strings[1]);
+            }
+            Collections.sort(stockList);
+            stocksAdapter.notifyDataSetChanged();
+        } else {
+            showNoNetworkWarning();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        dbHandler.shutDown();
+        super.onDestroy();
     }
 
     private void doRefresh() {
-        Toast.makeText(this, "Refreshed", Toast.LENGTH_SHORT).show();
+        if (isNetworkConnected()) {
+            ArrayList<String[]> list = dbHandler.loadStocks();
+            stockList.clear();
+            for (String[] strings : list) {
+                new AsyncGetFinancialData(this).execute(strings[0], strings[1]);
+            }
+            Collections.sort(stockList);
+            stocksAdapter.notifyDataSetChanged();
+        } else {
+            showNoNetworkWarning();
+        }
+        swiper.setRefreshing(false);
     }
 
     public void getSearchResult(String symbol, String companyName) {
@@ -72,8 +104,51 @@ public class MainActivity extends AppCompatActivity
         new AsyncGetFinancialData(this).execute(symbol, companyName);
     }
 
-    public void addNewStock(Stock stock){
-        Toast.makeText(this, stock.toString(), Toast.LENGTH_LONG).show();
+    public void addNewStock(Stock stock) {
+        Log.d(TAG, "addNewStock: " + stock);
+
+        // Duplicate stock
+        if (isDuplicate(stock.getSymbol())) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Duplicate Stock")
+                    .setMessage("Stock symbol " + stock.getSymbol() + " is already displayed.")
+                    .create()
+                    .show();
+            return;
+        }
+
+        stockList.add(stock);
+        Collections.sort(stockList);
+        if (!dbHandler.existsStock(stock.getSymbol()))
+            dbHandler.addStock(stock);
+        stocksAdapter.notifyDataSetChanged();
+    }
+
+    private boolean isDuplicate(String symbol) {
+        for (Stock stock : stockList) {
+            if (stock.getSymbol().equals(symbol))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void showNoNetworkWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("No Network Connection")
+                .setMessage("Stocks cannot be added without a network connection.")
+                .create()
+                .show();
     }
 
     @Override
@@ -86,6 +161,11 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
+                if (!isNetworkConnected()) {
+                    showNoNetworkWarning();
+                    return true;
+                }
+
                 final EditText et = new EditText(this);
                 et.setInputType(InputType.TYPE_CLASS_TEXT);
                 et.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
@@ -118,7 +198,10 @@ public class MainActivity extends AppCompatActivity
         int pos = recyclerView.getChildLayoutPosition(view);
         Stock s = stockList.get(pos);
 
-        Toast.makeText(view.getContext(), "SHORT " + s.toString(), Toast.LENGTH_SHORT).show();
+        String url = marketwatchURL + s.getSymbol();
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        startActivity(i);
     }
 
     @Override
@@ -126,13 +209,13 @@ public class MainActivity extends AppCompatActivity
         final int pos = recyclerView.getChildLayoutPosition(view);
         final Stock s = stockList.get(pos);
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("Delete Stock")
-                .setMessage("Delete Stock Symbol" + s.getSymbol() + "?")
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Stock")
+                .setMessage("Delete Stock Symbol " + s.getSymbol() + "?")
                 .setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         Toast.makeText(view.getContext(), "Stock Symbol" + s.getSymbol() + "' deleted", Toast.LENGTH_SHORT).show();
+                        dbHandler.deleteStock(s.getSymbol());
                         stockList.remove(pos);
                         stocksAdapter.notifyDataSetChanged();
                     }
@@ -141,10 +224,9 @@ public class MainActivity extends AppCompatActivity
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
-                });
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+                })
+                .create()
+                .show();
 
         return false;
     }
