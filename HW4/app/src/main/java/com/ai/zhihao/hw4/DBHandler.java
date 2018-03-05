@@ -66,21 +66,6 @@ public class DBHandler extends SQLiteOpenHelper {
         Log.d(TAG, "deleteStock: " + cnt);
     }
 
-    public boolean existsStock(String symbol) {
-        Log.d(TAG, "findStock: ");
-
-        Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + SYMBOL + " = \"" + symbol + "\"", null);
-        if (cursor != null) {
-            cursor.moveToFirst();
-            if (cursor.getCount() == 1 && cursor.getString(0).equals(symbol)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
     public ArrayList<String[]> loadStocks() {
         Log.d(TAG, " loadStocks: Load all symbol-company entries from DB");
         ArrayList<String[]> stocks = new ArrayList<>();

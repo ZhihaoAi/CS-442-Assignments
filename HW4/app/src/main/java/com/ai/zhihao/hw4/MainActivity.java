@@ -119,9 +119,8 @@ public class MainActivity extends AppCompatActivity
 
         stockList.add(stock);
         Collections.sort(stockList);
-        if (!dbHandler.existsStock(stock.getSymbol()))
-            dbHandler.addStock(stock);
         stocksAdapter.notifyDataSetChanged();
+        dbHandler.addStock(stock);
     }
 
     private boolean isDuplicate(String symbol) {
