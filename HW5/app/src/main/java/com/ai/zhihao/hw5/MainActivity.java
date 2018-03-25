@@ -37,9 +37,11 @@ public class MainActivity extends AppCompatActivity
 
     private List<Official> officialsList = new ArrayList<>();
     private RecyclerView recyclerView;
-    private OfficialsAdapter notesAdapter;
+    private OfficialsAdapter officialsAdapter;
 
     private Locator locator;
+    private Location defaultLocation;
+    private String zipcode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +50,13 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "onCreate: ");
 
         recyclerView = findViewById(R.id.recycler);
-        notesAdapter = new OfficialsAdapter(officialsList, this);
-        recyclerView.setAdapter(notesAdapter);
+        officialsAdapter = new OfficialsAdapter(officialsList, this);
+        recyclerView.setAdapter(officialsAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-//        test
-        for (int i=0;i<10;i++){
-            officialsList.add(new Official("US","ABC","C"));
-        }
-        notesAdapter.notifyDataSetChanged();
-
+        defaultLocation = new Location("Default");
+        defaultLocation.setLatitude(41.8348731d);
+        defaultLocation.setLongitude(-87.6291946d);
         locator = new Locator(this);
     }
 
@@ -85,7 +84,8 @@ public class MainActivity extends AppCompatActivity
                         .setView(et)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                 Toast.makeText(MainActivity.this, et.getText().toString(), Toast.LENGTH_SHORT).show();
+//                                 Toast.makeText(MainActivity.this, et.getText().toString(), Toast.LENGTH_SHORT).show();
+                                new CivicInfoDownloader(MainActivity.this).execute(et.getText().toString());
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -114,17 +114,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d(TAG, "onRequestPermissionsResult: grant length: " + grantResults.length);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length == 0) {
                 Log.d(TAG, "onRequestPermissionsResult: empty permissions array??");
                 return;
             }
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("TAG", "Fine location permission granted");
+                Log.d(TAG, "onRequestPermissionsResult: Fine location permission granted");
                 locator.setUpLocationManager();
                 locator.determineLocation();
             } else {
+                Log.d(TAG, "onRequestPermissionsResult: Fine location permission NOT granted");
                 noLocationAvailable();
             }
         }
@@ -133,7 +135,8 @@ public class MainActivity extends AppCompatActivity
     public void setLocation(double latitude, double longitude) {
         Log.d(TAG, "setLocation: Lat: " + latitude + ", Lon: " + longitude);
         String address = getAddress(latitude, longitude);
-        ((TextView) findViewById(R.id.tvAddress)).setText(address);
+        if (address != null)
+            ((TextView) findViewById(R.id.tvAddress)).setText(address);
     }
 
     private String getAddress(double latitude, double longitude) {
@@ -148,6 +151,7 @@ public class MainActivity extends AppCompatActivity
                 addresses = geocoder.getFromLocation(latitude, longitude, 1);
                 Address address = addresses.get(0);
                 String location = address.getLocality() + ", " + address.getAdminArea() + " " + address.getPostalCode();
+                zipcode = address.getPostalCode();
                 Log.d(TAG, "getAddress: " + location);
                 return location;
 
@@ -156,14 +160,25 @@ public class MainActivity extends AppCompatActivity
             }
             Toast.makeText(this, "GeoCoder service is slow - please wait", Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(this, "GeoCoder service timed out - please try again", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "The address cannot be acquired from provided latitude/longitude.", Toast.LENGTH_LONG).show();
         return null;
     }
 
     public void noLocationAvailable() {
-        Toast.makeText(this, "No location providers were available.\nUsing default location.", Toast.LENGTH_LONG).show();
-//        location of IIT
-        setLocation(41.8348731d, -87.6291946d);
+//        Toast.makeText(this, "No location providers were available.\nUsing default location.", Toast.LENGTH_LONG).show();
+//        default location: IIT
+        setLocation(defaultLocation.getLatitude(), defaultLocation.getLongitude());
+    }
+
+    public void generateOfficialsList(Object[] data) {
+        String address = (String) data[0];
+        ((TextView) findViewById(R.id.tvAddress)).setText(address);
+        officialsList.clear();
+        ArrayList<Official> offcials = (ArrayList<Official>) data[1];
+        for (Official official: offcials){
+            officialsList.add(official);
+        }
+        officialsAdapter.notifyDataSetChanged();
     }
 
     @Override
