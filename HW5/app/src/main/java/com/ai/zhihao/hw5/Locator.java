@@ -138,6 +138,7 @@ public class Locator {
             }
         }
 
+        Toast.makeText(ma, "No location providers were available.", Toast.LENGTH_LONG).show();
         ma.noLocationAvailable();
         return null;
     }

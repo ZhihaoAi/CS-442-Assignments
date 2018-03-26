@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity
                 setLocation(locator.determineLocation());
             } else {
                 Log.d(TAG, "onRequestPermissionsResult: Fine location permission NOT granted");
+                Toast.makeText(this, "No location providers were available.", Toast.LENGTH_LONG).show();
                 noLocationAvailable();
             }
         }
@@ -163,7 +164,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void noLocationAvailable() {
-        Toast.makeText(this, "No location providers were available.", Toast.LENGTH_LONG).show();
         ((TextView) findViewById(R.id.tvAddress)).setText("No Data For Location");
     }
 
