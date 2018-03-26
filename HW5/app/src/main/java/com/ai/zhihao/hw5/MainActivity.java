@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "getAddress: Lat: " + latitude + ", Lon: " + longitude);
 
         List<Address> addresses;
-        for (int times = 0; times < 3; times++) {
+//        for (int times = 0; times < 3; times++) {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
             try {
                 Log.d(TAG, "getAddress: Getting address now");
@@ -157,9 +157,9 @@ public class MainActivity extends AppCompatActivity
             } catch (Exception e) {
                 Log.d(TAG, "getAddress: " + e.getMessage());
             }
-            Toast.makeText(this, "GeoCoder service is slow - please wait", Toast.LENGTH_SHORT).show();
-        }
-        Toast.makeText(this, "The address cannot be acquired from provided latitude/longitude.", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "GeoCoder service is slow - please wait", Toast.LENGTH_SHORT).show();
+//        }
+        Toast.makeText(this, "The address cannot be acquired.", Toast.LENGTH_LONG).show();
         return null;
     }
 
