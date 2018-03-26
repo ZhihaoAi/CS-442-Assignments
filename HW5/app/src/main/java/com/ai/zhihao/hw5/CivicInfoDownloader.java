@@ -3,6 +3,7 @@ package com.ai.zhihao.hw5;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,7 +28,6 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
 
     private final String queryURL = "https://www.googleapis.com/civicinfo/v2/representatives?key=AIzaSyD-KeTUcz7gGKHxUT6VAg1JmSePvPM__fg";
     private int responseCode;
-    private String resultJSON;
 
     private static final String defaultString = "No Data Provided";
     private String location = defaultString;
@@ -39,12 +39,21 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
     }
 
     @Override
-    protected void onPostExecute(String address) {
+    protected void onPostExecute(String resultJSON) {
         Log.d(TAG, "onPostExecute: ");
 
-        // 404 not found
-        if (responseCode != 200) {
-            Log.d(TAG, "onPostExecute: responseCode != 200");
+        // service unavailable
+        if (resultJSON == null) {
+            Log.d(TAG, "onPostExecute: Civic Info service is unavailable");
+            Toast.makeText(ma, "The Civic Info service is unavailable", Toast.LENGTH_SHORT).show();
+            ma.generateOfficialsList(null);
+            return;
+        }
+        // no data is available for the specified location
+        if (resultJSON.equals("")) {
+            Log.d(TAG, "onPostExecute: no data is available for the specified location");
+            Toast.makeText(ma, "No data is available for the specified location", Toast.LENGTH_SHORT).show();
+            ma.generateOfficialsList(null);
             return;
         }
 
@@ -66,10 +75,11 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
             URL url = new URL(urlToUse);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            Log.d(TAG, "doInBackground: Response code = " + conn.getResponseCode() + ", " + conn.getResponseMessage());
             responseCode = conn.getResponseCode();
-            if (responseCode != 200)
-                return keys[0];
+            if (responseCode != 200) {
+                Log.d(TAG, "doInBackground: Response code = " + conn.getResponseCode() + ", " + conn.getResponseMessage());
+                return null;
+            }
 
             conn.setRequestMethod("GET");
             InputStream is = conn.getInputStream();
@@ -80,12 +90,11 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                 sb.append(line).append('\n');
             }
 
-            resultJSON = sb.toString();
+            return sb.toString();
         } catch (Exception e) {
-            Log.e(TAG, "doInBackground: ", e);
+            Log.d(TAG, "doInBackground: " + e.getMessage());
         }
-
-        return keys[0];
+        return null;
     }
 
     private void parseJSON(String jsonString) {
@@ -101,21 +110,15 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
             Log.d(TAG, "parseJSON: " + location);
 
             JSONArray offices = resultObject.getJSONArray("offices");
-//            String[] officeNames = new String[offices.length()];
             HashMap<String, String> indexToOfficeName = new HashMap<>();
-//            ArrayList<int[]> officialIndices = null;
             for (int i = 0; i < offices.length(); i++) {
                 JSONObject office = (JSONObject) offices.get(i);
                 String name = office.getString("name");
                 JSONArray indices = office.getJSONArray("officialIndices");
-//                officeNames[i] = name;
-//                int[] temp = new int[indices.length()];
 
                 for (int j = 0; j < indices.length(); j++){
-//                    temp[j] = (int) indices.get(j);
                     indexToOfficeName.put(indices.getString(j), name);
                 }
-//                officialIndices.add(temp);
             }
 
             JSONArray officials = resultObject.getJSONArray("officials");

@@ -6,8 +6,8 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,7 +24,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -40,8 +39,7 @@ public class MainActivity extends AppCompatActivity
     private OfficialsAdapter officialsAdapter;
 
     private Locator locator;
-    private Location defaultLocation;
-    private String zipcode;
+    private String zipCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +52,6 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setAdapter(officialsAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        defaultLocation = new Location("Default");
-        defaultLocation.setLatitude(41.8348731d);
-        defaultLocation.setLongitude(-87.6291946d);
         locator = new Locator(this);
     }
 
@@ -114,7 +109,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         Log.d(TAG, "onRequestPermissionsResult: grant length: " + grantResults.length);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length == 0) {
@@ -124,21 +118,27 @@ public class MainActivity extends AppCompatActivity
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "onRequestPermissionsResult: Fine location permission granted");
                 locator.setUpLocationManager();
-                locator.determineLocation();
+                setLocation(locator.determineLocation());
             } else {
                 Log.d(TAG, "onRequestPermissionsResult: Fine location permission NOT granted");
                 noLocationAvailable();
             }
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    public void setLocation(double latitude, double longitude) {
+    public void setLocation(Location location) {
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
         Log.d(TAG, "setLocation: Lat: " + latitude + ", Lon: " + longitude);
         String address = getAddress(latitude, longitude);
-        if (address != null)
-            ((TextView) findViewById(R.id.tvAddress)).setText(address);
+        if (address != null) {
+//            ((TextView) findViewById(R.id.tvAddress)).setText(address);
+            new CivicInfoDownloader(MainActivity.this).execute(zipCode);
+        }
     }
 
+    @Nullable
     private String getAddress(double latitude, double longitude) {
         Log.d(TAG, "getAddress: Lat: " + latitude + ", Lon: " + longitude);
 
@@ -147,14 +147,12 @@ public class MainActivity extends AppCompatActivity
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
             try {
                 Log.d(TAG, "getAddress: Getting address now");
-
                 addresses = geocoder.getFromLocation(latitude, longitude, 1);
                 Address address = addresses.get(0);
                 String location = address.getLocality() + ", " + address.getAdminArea() + " " + address.getPostalCode();
-                zipcode = address.getPostalCode();
+                zipCode = address.getPostalCode();
                 Log.d(TAG, "getAddress: " + location);
                 return location;
-
             } catch (Exception e) {
                 Log.d(TAG, "getAddress: " + e.getMessage());
             }
@@ -165,17 +163,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void noLocationAvailable() {
-//        Toast.makeText(this, "No location providers were available.\nUsing default location.", Toast.LENGTH_LONG).show();
-//        default location: IIT
-        setLocation(defaultLocation.getLatitude(), defaultLocation.getLongitude());
+        Toast.makeText(this, "No location providers were available.", Toast.LENGTH_LONG).show();
+        ((TextView) findViewById(R.id.tvAddress)).setText("No Data For Location");
     }
 
     public void generateOfficialsList(Object[] data) {
+        if (data == null) {
+            noLocationAvailable();
+            officialsList.clear();
+            officialsAdapter.notifyDataSetChanged();
+            return;
+        }
         String address = (String) data[0];
+        ArrayList<Official> officials = (ArrayList<Official>) data[1];
+
         ((TextView) findViewById(R.id.tvAddress)).setText(address);
         officialsList.clear();
-        ArrayList<Official> offcials = (ArrayList<Official>) data[1];
-        for (Official official: offcials){
+        for (Official official: officials){
             officialsList.add(official);
         }
         officialsAdapter.notifyDataSetChanged();

@@ -25,8 +25,7 @@ public class Locator {
     private MainActivity ma;
     private LocationManager locationManager;
     private LocationListener locationListener;
-    private Location defaultLocation;
-    private Location myLocation;
+//    private Location myLocation;
 
     public Locator(MainActivity ma) {
         this.ma = ma;
@@ -60,9 +59,9 @@ public class Locator {
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
-                Toast.makeText(ma, "Update from " + location.getProvider(), Toast.LENGTH_SHORT).show();
-                Log.d("DELETE IT: ", "onLocationChanged: " + location.getProvider());
-                ma.setLocation(location.getLatitude(), location.getLongitude());
+//                Toast.makeText(ma, "Update from " + location.getProvider(), Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "onLocationChanged: " + location.getProvider());
+                ma.setLocation(location);
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -79,71 +78,74 @@ public class Locator {
         };
 
         // Register the listener with the Location Manager to receive GPS location updates
-//        locationManager.requestLocationUpdates(
-//                LocationManager.GPS_PROVIDER, 100000, 100, locationListener);
+        // Refreshing rate: 1 minute, 1000 meters
+        locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 60000, 1000, locationListener);
     }
 
-    public void determineLocation() {
+    public Location determineLocation() {
 
         if (!checkPermission())
-            return;
+            return null;
 
         if (locationManager == null)
             setUpLocationManager();
 
-        for (String providerName : locationManager.getAllProviders()) {
-            Location loc = locationManager.getLastKnownLocation(providerName);
+//        for (String providerName : locationManager.getAllProviders()) {
+//            Location loc = locationManager.getLastKnownLocation(providerName);
+//            if (loc != null) {
+////                log the locations found via network, gps and passive
+////                long timeNow = System.currentTimeMillis();
+////                Log.d(TAG, "findCurrentLocation:\n" +
+////                        "Provider: " + providerName + "\n" +
+////                        "Accuracy: " + loc.getAccuracy() + "m\n" +
+////                        "Time: " + (timeNow - loc.getTime()) / 1000 + "sec\n" +
+////                        "Latitude: " + loc.getLatitude() + "\n" +
+////                        "Longitude: " + loc.getLongitude() + "\n");
+////
+//                if (myLocation == null || loc.getAccuracy() < myLocation.getAccuracy()) {
+//                    myLocation = new Location(loc);
+//                }
+//            }
+//        }
+//        Toast.makeText(ma, "Using " + myLocation.getProvider() + " Location provider", Toast.LENGTH_SHORT).show();
+//        return myLocation;
+
+        if (locationManager != null) {
+            Location loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if (loc != null) {
-//                log the locations found via network, gps and passive
-//                long timeNow = System.currentTimeMillis();
-//                Log.d(TAG, "findCurrentLocation:\n" +
-//                        "Provider: " + providerName + "\n" +
-//                        "Accuracy: " + loc.getAccuracy() + "m\n" +
-//                        "Time: " + (timeNow - loc.getTime()) / 1000 + "sec\n" +
-//                        "Latitude: " + loc.getLatitude() + "\n" +
-//                        "Longitude: " + loc.getLongitude() + "\n");
-//
-                if (myLocation == null || loc.getAccuracy() < myLocation.getAccuracy()) {
-                    myLocation = new Location(loc);
-                }
+//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
+                Toast.makeText(ma, "Using " + LocationManager.NETWORK_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
+                return loc;
             }
         }
-        ma.setLocation(myLocation.getLatitude(), myLocation.getLongitude());
-        Toast.makeText(ma, "Using " + myLocation.getProvider() + " Location provider", Toast.LENGTH_SHORT).show();
 
-//        if (locationManager != null) {
-//            Location loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//            if (loc != null) {
+        if (locationManager != null) {
+            Location loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            if (loc != null) {
 //                ma.setLocation(loc.getLatitude(), loc.getLongitude());
-//                Toast.makeText(ma, "Using " + LocationManager.NETWORK_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-//        }
-//
-//        if (locationManager != null) {
-//            Location loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-//            if (loc != null) {
-//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
-//                Toast.makeText(ma, "Using " + LocationManager.PASSIVE_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-//        }
-//
-//        if (locationManager != null) {
-//            Location loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//            if (loc != null) {
-//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
-//                Toast.makeText(ma, "Using " + LocationManager.GPS_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-//        }
+                Toast.makeText(ma, "Using " + LocationManager.PASSIVE_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
+                return loc;
+            }
+        }
 
-        // got no location
-//        ma.noLocationAvailable();
+        if (locationManager != null) {
+            Location loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (loc != null) {
+//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
+                Toast.makeText(ma, "Using " + LocationManager.GPS_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
+                return loc;
+            }
+        }
+
+        ma.noLocationAvailable();
+        return null;
     }
 
     public void shutdown() {
-//        locationManager.removeUpdates(locationListener);
-        locationManager = null;
+        if (locationManager != null) {
+            locationManager.removeUpdates(locationListener);
+            locationManager = null;
+        }
     }
 }
