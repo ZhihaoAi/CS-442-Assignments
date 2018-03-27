@@ -3,6 +3,7 @@ package com.ai.zhihao.hw5;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity
                 return true;
             case R.id.location:
                 final EditText et = new EditText(this);
-                et.setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
                 et.setInputType(InputType.TYPE_CLASS_TEXT);
                 et.setGravity(Gravity.CENTER_HORIZONTAL);
 

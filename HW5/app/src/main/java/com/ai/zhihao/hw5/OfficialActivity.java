@@ -27,9 +27,9 @@ public class OfficialActivity extends AppCompatActivity {
     private static final String TAG = "OfficialActivity";
     private static final String defaultString = "No Data Provided";
     private Official official;
-    HashMap<String, String> channels;
-
+    private TextView addressBar;
     private ImageView imageView;
+    HashMap<String, String> channels;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +37,13 @@ public class OfficialActivity extends AppCompatActivity {
         setContentView(R.layout.activity_official);
 
         imageView = findViewById(R.id.ivPhoto);
+        addressBar = findViewById(R.id.tvAddress_official);
         Intent intent = getIntent();
         if (intent.hasExtra("address")) {
-            ((TextView) findViewById(R.id.tvAddress_official)).setText(intent.getStringExtra("address"));
+            addressBar.setText(intent.getStringExtra("address"));
         }
         if (intent.hasExtra("official")) {
             official = (Official) intent.getSerializableExtra("official");
-            loadImage();
             ((TextView) findViewById(R.id.tvOffice_official)).setText(official.getOffice());
             ((TextView) findViewById(R.id.tvName_official)).setText(official.getName());
             ((TextView) findViewById(R.id.tvParty)).setText("("+official.getParty()+")");
@@ -52,14 +52,14 @@ public class OfficialActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.tvEmail)).setText(official.getEmail());
             ((TextView) findViewById(R.id.tvUrl)).setText(official.getUrl());
             channels = official.getChannels();
-//            if (!channels.keySet().contains("Youtube"))
-//                findViewById(R.id.ivYoutube).setVisibility(View.INVISIBLE);
-//            if (!channels.keySet().contains("GooglePlus"))
-//                findViewById(R.id.ivGooglePlus).setVisibility(View.INVISIBLE);
-//            if (!channels.keySet().contains("Twitter"))
-//                findViewById(R.id.ivTwitter).setVisibility(View.INVISIBLE);
-//            if (!channels.keySet().contains("Facebook"))
-//                findViewById(R.id.ivFacebook).setVisibility(View.INVISIBLE);
+            if (!channels.keySet().contains("Youtube"))
+                findViewById(R.id.ivYoutube).setVisibility(View.INVISIBLE);
+            if (!channels.keySet().contains("GooglePlus"))
+                findViewById(R.id.ivGooglePlus).setVisibility(View.INVISIBLE);
+            if (!channels.keySet().contains("Twitter"))
+                findViewById(R.id.ivTwitter).setVisibility(View.INVISIBLE);
+            if (!channels.keySet().contains("Facebook"))
+                findViewById(R.id.ivFacebook).setVisibility(View.INVISIBLE);
 
             if (!official.getAddress().equals(defaultString)) {
                 Pattern pattern = Pattern.compile(".*", Pattern.DOTALL);
@@ -78,6 +78,16 @@ public class OfficialActivity extends AppCompatActivity {
                     findViewById(R.id.svOfficial).setBackgroundColor(Color.BLACK);
                 }
             }
+            loadImage();
+        }
+    }
+
+    public void openPhotoActivity(View view) {
+        if (!official.getPhotoUrl().equals(defaultString)) {
+            Intent photo = new Intent(this, PhotoActivity.class);
+            photo.putExtra("address", addressBar.getText().toString());
+            photo.putExtra("official", official);
+            startActivity(photo);
         }
     }
 
@@ -101,9 +111,11 @@ public class OfficialActivity extends AppCompatActivity {
                     .placeholder(R.drawable.placeholder)
                     .into(imageView);
         } else {
-            Picasso.with(this).load(imageURL)
-                    .error(R.drawable.brokenimage)
-                    .placeholder(R.drawable.missingimage)
+//            Picasso.with(this).load(imageURL)
+//                    .error(R.drawable.brokenimage)
+//                    .placeholder(R.drawable.missingimage)
+//                    .into(imageView);
+            Picasso.with(this).load(R.drawable.missingimage)
                     .into(imageView);
         }
     }

@@ -15,5 +15,7 @@
     <string name="google_plus_icon">google plus icon</string>
     <string name="twitter_icon">twitter icon</string>
     <string name="facebook_icon">facebook icon</string>
+    <string name="fullsized_photo">official\'s full-sized photo</string>
+    <string name="separator">separator</string>
 
 </resources>

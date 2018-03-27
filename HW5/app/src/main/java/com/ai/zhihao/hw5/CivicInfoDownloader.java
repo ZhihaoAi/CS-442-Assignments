@@ -89,7 +89,8 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append('\n');
             }
-
+            is.close();
+            conn.disconnect();
             return sb.toString();
         } catch (Exception e) {
             Log.d(TAG, "doInBackground: " + e.getMessage());
