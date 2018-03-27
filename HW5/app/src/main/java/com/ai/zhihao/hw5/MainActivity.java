@@ -1,5 +1,6 @@
 package com.ai.zhihao.hw5;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -7,6 +8,8 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -74,6 +77,10 @@ public class MainActivity extends AppCompatActivity
                 startActivity(info);
                 return true;
             case R.id.location:
+                if (!isNetworkConnected()) {
+                    showNoNetworkWarning();
+                    return true;
+                }
                 final EditText et = new EditText(this);
                 et.setInputType(InputType.TYPE_CLASS_TEXT);
                 et.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -143,8 +150,11 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "setLocation: Lat: " + latitude + ", Lon: " + longitude);
         String address = getAddress(latitude, longitude);
         if (address != null) {
-//            addressBar.setText(address);
             new CivicInfoDownloader(MainActivity.this).execute(zipCode);
+        }
+        if (!isNetworkConnected()) {
+            showNoNetworkWarning();
+            return;
         }
     }
 
@@ -174,6 +184,26 @@ public class MainActivity extends AppCompatActivity
 
     public void noLocationAvailable() {
         addressBar.setText("No Data For Location");
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void showNoNetworkWarning() {
+        addressBar.setText("No Data For Location");
+        new AlertDialog.Builder(this)
+                .setTitle("No Network Connection")
+                .setMessage("Data cannot be accessed/loaded without an internet connection.")
+                .create()
+                .show();
     }
 
     public void generateOfficialsList(Object[] data) {
