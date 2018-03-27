@@ -13,7 +13,6 @@ import java.util.List;
 
 public class OfficialsAdapter extends RecyclerView.Adapter<OfficialViewHolder> {
 
-    private static final String TAG = "OfficialsAdapter";
     private List<Official> officialsList;
     private MainActivity ma;
 

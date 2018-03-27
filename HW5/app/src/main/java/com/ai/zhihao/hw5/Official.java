@@ -7,7 +7,7 @@ import java.util.HashMap;
  * Created by zhihaoai on 3/24/18.
  */
 
-public class Official implements Serializable{
+public class Official implements Serializable {
 
     private static String defaultString = "No Data Provided";
     private String office;

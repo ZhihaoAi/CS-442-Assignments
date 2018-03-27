@@ -4,22 +4,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
@@ -35,7 +31,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, View.OnLongClickListener{
+        implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "MainActivity";
     private int LOCATION_PERMISSION_REQUEST_CODE = 666;
@@ -164,18 +160,18 @@ public class MainActivity extends AppCompatActivity
 
         List<Address> addresses;
 //        for (int times = 0; times < 3; times++) {
-            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            try {
-                Log.d(TAG, "getAddress: Getting address now");
-                addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                Address address = addresses.get(0);
-                String location = address.getLocality() + ", " + address.getAdminArea() + " " + address.getPostalCode();
-                zipCode = address.getPostalCode();
-                Log.d(TAG, "getAddress: " + location);
-                return location;
-            } catch (Exception e) {
-                Log.d(TAG, "getAddress: " + e.getMessage());
-            }
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            Log.d(TAG, "getAddress: Getting address now");
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            Address address = addresses.get(0);
+            String location = address.getLocality() + ", " + address.getAdminArea() + " " + address.getPostalCode();
+            zipCode = address.getPostalCode();
+            Log.d(TAG, "getAddress: " + location);
+            return location;
+        } catch (Exception e) {
+            Log.d(TAG, "getAddress: " + e.getMessage());
+        }
 //            Toast.makeText(this, "GeoCoder service is slow - please wait", Toast.LENGTH_SHORT).show();
 //        }
         Toast.makeText(this, "The address cannot be acquired.", Toast.LENGTH_LONG).show();
@@ -218,7 +214,7 @@ public class MainActivity extends AppCompatActivity
 
         addressBar.setText(address);
         officialsList.clear();
-        for (Official official: officials){
+        for (Official official : officials) {
             officialsList.add(official);
         }
         officialsAdapter.notifyDataSetChanged();

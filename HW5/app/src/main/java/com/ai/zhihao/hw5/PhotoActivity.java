@@ -44,7 +44,7 @@ public class PhotoActivity extends AppCompatActivity {
             } else {
                 if (official.getParty().equals("Democratic")) {
                     findViewById(R.id.clPhoto).setBackgroundColor(Color.BLUE);
-                } else{
+                } else {
                     findViewById(R.id.clPhoto).setBackgroundColor(Color.BLACK);
                 }
             }

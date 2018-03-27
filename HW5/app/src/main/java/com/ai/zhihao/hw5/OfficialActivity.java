@@ -46,7 +46,7 @@ public class OfficialActivity extends AppCompatActivity {
             official = (Official) intent.getSerializableExtra("official");
             ((TextView) findViewById(R.id.tvOffice_official)).setText(official.getOffice());
             ((TextView) findViewById(R.id.tvName_official)).setText(official.getName());
-            ((TextView) findViewById(R.id.tvParty)).setText("("+official.getParty()+")");
+            ((TextView) findViewById(R.id.tvParty)).setText("(" + official.getParty() + ")");
             ((TextView) findViewById(R.id.tvAddress)).setText(official.getAddress());
             ((TextView) findViewById(R.id.tvPhone)).setText(official.getPhone());
             ((TextView) findViewById(R.id.tvEmail)).setText(official.getEmail());
@@ -74,7 +74,7 @@ public class OfficialActivity extends AppCompatActivity {
             } else {
                 if (official.getParty().equals("Democratic")) {
                     findViewById(R.id.svOfficial).setBackgroundColor(Color.BLUE);
-                } else{
+                } else {
                     findViewById(R.id.svOfficial).setBackgroundColor(Color.BLACK);
                 }
             }
@@ -139,7 +139,7 @@ public class OfficialActivity extends AppCompatActivity {
         Intent intent = null;
         try {
             intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName("com.google.android.apps.plus","com.google.android.apps.plus.phone.UrlGatewayActivity");
+            intent.setClassName("com.google.android.apps.plus", "com.google.android.apps.plus.phone.UrlGatewayActivity");
             intent.putExtra("customAppUri", name);
             startActivity(intent);
         } catch (ActivityNotFoundException e) {

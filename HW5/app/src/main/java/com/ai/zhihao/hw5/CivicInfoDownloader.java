@@ -117,7 +117,7 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                 String name = office.getString("name");
                 JSONArray indices = office.getJSONArray("officialIndices");
 
-                for (int j = 0; j < indices.length(); j++){
+                for (int j = 0; j < indices.length(); j++) {
                     indexToOfficeName.put(indices.getString(j), name);
                 }
             }
@@ -155,7 +155,7 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                     party = "Unknown";
 
                 String phone;
-                if (official.has("phones")){
+                if (official.has("phones")) {
                     phone = official.getJSONArray("phones")
                             .get(0).toString();
                 } else {
@@ -163,7 +163,7 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                 }
 
                 String url;
-                if (official.has("urls")){
+                if (official.has("urls")) {
                     url = official.getJSONArray("urls")
                             .get(0).toString();
                 } else {
@@ -171,7 +171,7 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                 }
 
                 String email;
-                if (official.has("emails")){
+                if (official.has("emails")) {
                     email = official.getJSONArray("emails")
                             .get(0).toString();
                 } else {
@@ -179,7 +179,7 @@ public class CivicInfoDownloader extends AsyncTask<String, Void, String> {
                 }
 
                 String photoUrl;
-                if (official.has("photoUrl")){
+                if (official.has("photoUrl")) {
                     photoUrl = official.getString("photoUrl");
                 } else {
                     photoUrl = defaultString;

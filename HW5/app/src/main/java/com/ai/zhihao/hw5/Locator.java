@@ -29,7 +29,7 @@ public class Locator {
 
     public Locator(MainActivity ma) {
         this.ma = ma;
-        if(checkPermission()) {
+        if (checkPermission()) {
             setUpLocationManager();
             determineLocation();
         }
@@ -114,7 +114,6 @@ public class Locator {
         if (locationManager != null) {
             Location loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if (loc != null) {
-//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
                 Toast.makeText(ma, "Using " + LocationManager.NETWORK_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
                 return loc;
             }
@@ -123,7 +122,6 @@ public class Locator {
         if (locationManager != null) {
             Location loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
             if (loc != null) {
-//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
                 Toast.makeText(ma, "Using " + LocationManager.PASSIVE_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
                 return loc;
             }
@@ -132,7 +130,6 @@ public class Locator {
         if (locationManager != null) {
             Location loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (loc != null) {
-//                ma.setLocation(loc.getLatitude(), loc.getLongitude());
                 Toast.makeText(ma, "Using " + LocationManager.GPS_PROVIDER + " Location provider", Toast.LENGTH_SHORT).show();
                 return loc;
             }
