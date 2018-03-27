@@ -1,12 +1,13 @@
 package com.ai.zhihao.hw5;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 /**
  * Created by zhihaoai on 3/24/18.
  */
 
-public class Official {
+public class Official implements Serializable{
 
     private static String defaultString = "No Data Provided";
     private String office;
@@ -45,6 +46,10 @@ public class Official {
 
     public String getParty() {
         return party;
+    }
+
+    public String getPhone() {
+        return phone;
     }
 
     public String getUrl() {

@@ -6,8 +6,10 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView recyclerView;
     private OfficialsAdapter officialsAdapter;
 
+    private TextView addressBar;
     private Locator locator;
     private String zipCode;
 
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setAdapter(officialsAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        addressBar = findViewById(R.id.tvAddress_main);
         locator = new Locator(this);
     }
 
@@ -70,8 +74,8 @@ public class MainActivity extends AppCompatActivity
                 return true;
             case R.id.location:
                 final EditText et = new EditText(this);
+                et.setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
                 et.setInputType(InputType.TYPE_CLASS_TEXT);
-                et.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
                 et.setGravity(Gravity.CENTER_HORIZONTAL);
 
                 new AlertDialog.Builder(this)
@@ -98,12 +102,17 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View view) {
-        Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
+        int pos = recyclerView.getChildLayoutPosition(view);
+        Official official = officialsList.get(pos);
+        Intent personal = new Intent(this, OfficialActivity.class);
+        personal.putExtra("address", addressBar.getText().toString());
+        personal.putExtra("official", official);
+        startActivity(personal);
     }
 
     @Override
     public boolean onLongClick(View view) {
-        Toast.makeText(this, "long clicked", Toast.LENGTH_SHORT).show();
+        onClick(view);
         return false;
     }
 
@@ -134,7 +143,7 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "setLocation: Lat: " + latitude + ", Lon: " + longitude);
         String address = getAddress(latitude, longitude);
         if (address != null) {
-//            ((TextView) findViewById(R.id.tvAddress)).setText(address);
+//            addressBar.setText(address);
             new CivicInfoDownloader(MainActivity.this).execute(zipCode);
         }
     }
@@ -164,7 +173,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void noLocationAvailable() {
-        ((TextView) findViewById(R.id.tvAddress)).setText("No Data For Location");
+        addressBar.setText("No Data For Location");
     }
 
     public void generateOfficialsList(Object[] data) {
@@ -177,7 +186,7 @@ public class MainActivity extends AppCompatActivity
         String address = (String) data[0];
         ArrayList<Official> officials = (ArrayList<Official>) data[1];
 
-        ((TextView) findViewById(R.id.tvAddress)).setText(address);
+        addressBar.setText(address);
         officialsList.clear();
         for (Official official: officials){
             officialsList.add(official);
