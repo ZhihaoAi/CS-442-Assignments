@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void selectItem(int position) {
-        Toast.makeText(this, items.get(position), Toast.LENGTH_SHORT).show();
+
         pager.setBackground(null);
         setTitle(items.get(position));
 
@@ -134,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         int i = 1;
         for (Article a : articles) {
             String count = String.format("%d of %d", i++, articles.size());
-            fragments.add(NewsFragment.newInstance(a.getTitle(), a.getAuthor(), a.getDescription(), a.getUrlToImage(), a.getTime(), count));
+            fragments.add(NewsFragment.newInstance(a.getTitle(), a.getAuthor(), a.getDescription(), a.getUrlToImage(), a.getTime(), count, a.getUrl()));
         }
 
         pageAdapter.notifyDataSetChanged();
@@ -173,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         items.clear();
-        for (Source s : sourceData.get(item.getTitle())){
+        for (Source s : sourceData.get(item.getTitle())) {
             items.add(s.getName());
         }
 
@@ -183,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void setSources (ArrayList<Source> sources, ArrayList<String> categories) {
+    public void setSources(ArrayList<Source> sources, ArrayList<String> categories) {
 
         items.clear();
         sourceData.clear();
@@ -204,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -239,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Notify that the position of a fragment has been changed.
          * Create a new ID for each position to force recreation of the fragment
+         *
          * @param n number of items which have been changed
          */
         public void notifyChangeInPosition(int n) {

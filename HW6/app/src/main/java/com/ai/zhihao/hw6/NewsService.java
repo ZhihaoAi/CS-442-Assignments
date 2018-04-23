@@ -42,7 +42,7 @@ public class NewsService extends Service {
             @Override
             public void run() {
                 while (running) {
-                    if (storyList.isEmpty()){
+                    if (storyList.isEmpty()) {
                         try {
                             Thread.sleep(250);
                         } catch (InterruptedException e) {
@@ -72,7 +72,7 @@ public class NewsService extends Service {
         super.onDestroy();
     }
 
-    public void setArticles (ArrayList<Article> articles) {
+    public void setArticles(ArrayList<Article> articles) {
         storyList.clear();
         storyList.addAll(articles);
     }

@@ -14,9 +14,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by zhihaoai on 4/23/18.
@@ -97,7 +94,8 @@ public class NewsArticleDownloader extends AsyncTask<String, Void, String> {
                     String description = source.getString("description");
                     String urlToImage = source.getString("urlToImage");
                     String time = source.getString("publishedAt");
-                    this.articles.add(new Article(title, author, description, urlToImage, time));
+                    String url = source.getString("url");
+                    this.articles.add(new Article(title, author, description, urlToImage, time, url));
                 }
             }
         } catch (JSONException e) {

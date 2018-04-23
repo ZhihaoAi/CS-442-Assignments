@@ -6,20 +6,22 @@ import java.io.Serializable;
  * Created by zhihaoai on 4/22/18.
  */
 
-public class Article implements Serializable{
+public class Article implements Serializable {
 
     private String title;
     private String author;
     private String description;
     private String urlToImage;
     private String time;
+    private String url;
 
-    public Article(String title, String author, String description, String urlToImage, String time) {
+    public Article(String title, String author, String description, String urlToImage, String time, String url) {
         this.title = title;
         this.author = author;
         this.description = description;
         this.urlToImage = urlToImage;
         this.time = time;
+        this.url = url;
     }
 
     public String getTitle() {
@@ -62,6 +64,14 @@ public class Article implements Serializable{
         this.time = time;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     @Override
     public String toString() {
         return "Article{" +
@@ -70,6 +80,7 @@ public class Article implements Serializable{
                 ", description='" + description + '\'' +
                 ", urlToImage='" + urlToImage + '\'' +
                 ", time='" + time + '\'' +
+                ", url='" + url + '\'' +
                 '}';
     }
 }

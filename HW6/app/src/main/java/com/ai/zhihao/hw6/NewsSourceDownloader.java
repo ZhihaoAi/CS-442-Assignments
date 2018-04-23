@@ -36,7 +36,7 @@ public class NewsSourceDownloader extends AsyncTask<String, Void, String> {
 
     public NewsSourceDownloader(MainActivity ma, String category) {
         this.ma = ma;
-        if (category.equals("all")){
+        if (category.equals("all")) {
             this.category = "";
         } else {
             this.category = category;
@@ -49,7 +49,7 @@ public class NewsSourceDownloader extends AsyncTask<String, Void, String> {
 
         parseJSON(resultJSON);
         Set categories = new HashSet();
-        for (Source s : sources){
+        for (Source s : sources) {
             categories.add(s.getCategory());
         }
         this.categories = new ArrayList<>(categories);
