@@ -18,10 +18,10 @@ import java.util.ArrayList;
 public class NewsService extends Service {
 
     private static final String TAG = "CountService";
-    static final String ACTION_MSG_TO_SERVICE = "ACTION_MSG_TO_SERVICE";
+    static final String ACTION_MSG_TO_SVC = "ACTION_MSG_TO_SVC";
     private boolean running = true;
 
-    private ArrayList<Article> storylist = new ArrayList<>();
+    private ArrayList<Article> storyList = new ArrayList<>();
 
     private ServiceReceiver serviceReceiver;
 
@@ -35,14 +35,14 @@ public class NewsService extends Service {
 
         serviceReceiver = new ServiceReceiver();
 
-        IntentFilter filter = new IntentFilter(ACTION_MSG_TO_SERVICE);
+        IntentFilter filter = new IntentFilter(ACTION_MSG_TO_SVC);
         registerReceiver(serviceReceiver, filter);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (running) {
-                    if (storylist.isEmpty()){
+                    if (storyList.isEmpty()){
                         try {
                             Thread.sleep(250);
                         } catch (InterruptedException e) {
@@ -51,9 +51,9 @@ public class NewsService extends Service {
                     } else {
                         Intent intent = new Intent();
                         intent.setAction(MainActivity.ACTION_NEWS_STORY);
-                        intent.putExtra(MainActivity.SERVICE_DATA, storylist);
+                        intent.putExtra(MainActivity.SERVICE_DATA, storyList);
                         sendBroadcast(intent);
-                        storylist.clear();
+                        storyList.clear();
                     }
                 }
                 Toast.makeText(NewsService.this, "Service shut down", Toast.LENGTH_SHORT).show();
@@ -72,14 +72,23 @@ public class NewsService extends Service {
         super.onDestroy();
     }
 
+    public void setArticles (ArrayList<Article> articles) {
+        storyList.clear();
+        storyList.addAll(articles);
+    }
+
     class ServiceReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
 
             switch (intent.getAction()) {
-                case ACTION_MSG_TO_SERVICE:
-                    // TODO: 4/22/18 Get the Article list from the intent s extras
+                case ACTION_MSG_TO_SVC:
+                    String source = "";
+                    if (intent.hasExtra("SourceID"))
+                        source = intent.getStringExtra("SourceID");
+                    Log.d(TAG, "onReceive: " + source);
+                    new NewsArticleDownloader(NewsService.this, source).execute();
                     break;
             }
         }

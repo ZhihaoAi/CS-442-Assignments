@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     static final String ACTION_NEWS_STORY = "ACTION_NEWS_STORY";
+    static final String ACTION_MSG_TO_SVC = "ACTION_MSG_TO_SVC";
     static final String SERVICE_DATA = "SERVICE_DATA";
 
     private MyPageAdapter pageAdapter;
@@ -50,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Menu opt_menu;
 
+    private ArrayList<Article> articles = new ArrayList<>();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,11 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
         IntentFilter filter = new IntentFilter(ACTION_NEWS_STORY);
         registerReceiver(newsReceiver, filter);
-
-        //
-        items.add("Category 1");
-        items.add("Category 2");
-        items.add("Category 3");
 
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mDrawerList = findViewById(R.id.leftDrawer);
@@ -99,31 +97,44 @@ public class MainActivity extends AppCompatActivity {
         pageAdapter = new MyPageAdapter(getSupportFragmentManager());
         pager = findViewById(R.id.viewPager);
         pager.setAdapter(pageAdapter);
+        pager.setBackground(getResources().getDrawable(R.drawable.background, this.getTheme()));
 
         new NewsSourceDownloader(this, "").execute();
-//        selectItem(0);
 
     }
 
     private void selectItem(int position) {
         Toast.makeText(this, items.get(position), Toast.LENGTH_SHORT).show();
+        pager.setBackground(null);
         setTitle(items.get(position));
-        reDoFragments(position);
+
+        Intent intent = new Intent();
+        intent.setAction(ACTION_MSG_TO_SVC);
+        String selectedID = null;
+        for (Source s : sourceData.get("all")) {
+            if (s.getName().equals(items.get(position))) {
+                selectedID = s.getId();
+                break;
+            }
+        }
+        Log.d(TAG, "selectItem: " + selectedID);
+        intent.putExtra("SourceID", selectedID);
+        sendBroadcast(intent);
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
-    private void reDoFragments(int idx) {
+    private void reDoFragments() {
 
 //        for (int i = 0; i < pageAdapter.getCount(); i++)
 //            pageAdapter.notifyChangeInPosition(i);
         pageAdapter.notifyChangeInPosition(pageAdapter.getCount());
 
         fragments.clear();
-        String src = items.get(idx);
-        int count = (int) (Math.random() * 8 + 2);
 
-        for (int i = 0; i < count; i++) {
-            fragments.add(NewsFragment.newInstance(src + ", Item #" + (i+1) + " of " + count));
+        int i = 1;
+        for (Article a : articles) {
+            String count = String.format("%d of %d", i++, articles.size());
+            fragments.add(NewsFragment.newInstance(a.getTitle(), a.getAuthor(), a.getDescription(), a.getUrlToImage(), a.getTime(), count));
         }
 
         pageAdapter.notifyDataSetChanged();
@@ -143,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         // Pass any configuration change to the drawer toggles
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -174,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
     public void setSources (ArrayList<Source> sources, ArrayList<String> categories) {
 
         items.clear();
-        this.sourceData.clear();
+        sourceData.clear();
 
         for (Source s : sources) {
             items.add(s.getName());
@@ -246,7 +258,9 @@ public class MainActivity extends AppCompatActivity {
 
             switch (intent.getAction()) {
                 case ACTION_NEWS_STORY:
-                    // TODO: 4/22/18 Get the Article list from the intent s extras
+                    if (intent.hasExtra(SERVICE_DATA))
+                        articles = (ArrayList<Article>) intent.getSerializableExtra(SERVICE_DATA);
+                    reDoFragments();
                     break;
             }
         }
