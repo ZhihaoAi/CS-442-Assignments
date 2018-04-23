@@ -1,5 +1,9 @@
 package com.ai.zhihao.hw6;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -17,12 +21,19 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
+    static final String ACTION_NEWS_STORY = "ACTION_NEWS_STORY";
+    static final String SERVICE_DATA = "SERVICE_DATA";
 
     private MyPageAdapter pageAdapter;
     private List<Fragment> fragments;
@@ -33,10 +44,24 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private ArrayList<String> items = new ArrayList<>();
 
+    private NewsReceiver newsReceiver;
+
+    private HashMap<String, ArrayList<Source>> sourceData = new HashMap<>();
+
+    private Menu opt_menu;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = new Intent(MainActivity.this, NewsService.class);
+        startService(intent);
+
+        newsReceiver = new NewsReceiver();
+
+        IntentFilter filter = new IntentFilter(ACTION_NEWS_STORY);
+        registerReceiver(newsReceiver, filter);
 
         //
         items.add("Category 1");
@@ -75,7 +100,8 @@ public class MainActivity extends AppCompatActivity {
         pager = findViewById(R.id.viewPager);
         pager.setAdapter(pageAdapter);
 
-        selectItem(0);
+        new NewsSourceDownloader(this, "").execute();
+//        selectItem(0);
 
     }
 
@@ -114,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggls
+        // Pass any configuration change to the drawer toggles
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        opt_menu = menu;
         return true;
     }
 
@@ -134,15 +160,39 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (item.getItemId() == R.id.clear_menu_item) {
-            items.clear();
-        } else {
-            items.add("Category " + (items.size() + 1));
+        items.clear();
+        for (Source s : sourceData.get(item.getTitle())){
+            items.add(s.getName());
         }
+
+        ((ArrayAdapter) mDrawerList.getAdapter()).notifyDataSetChanged();
 
         return true;
 
     }
+
+    public void setSources (ArrayList<Source> sources, ArrayList<String> categories) {
+
+        items.clear();
+        this.sourceData.clear();
+
+        for (Source s : sources) {
+            items.add(s.getName());
+            if (!sourceData.containsKey(s.getCategory())) {
+                sourceData.put(s.getCategory(), new ArrayList<Source>());
+            }
+            sourceData.get(s.getCategory()).add(s);
+        }
+        sourceData.put("all", sources);
+
+        for (String s : categories)
+            opt_menu.add(s);
+
+        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, items));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+    }
+
 //////////////////////////////////////////////////////////////////////////////////////
 
     private class MyPageAdapter extends FragmentPagerAdapter {
@@ -186,4 +236,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+    class NewsReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            switch (intent.getAction()) {
+                case ACTION_NEWS_STORY:
+                    // TODO: 4/22/18 Get the Article list from the intent s extras
+                    break;
+            }
+        }
+    }
+
 }
