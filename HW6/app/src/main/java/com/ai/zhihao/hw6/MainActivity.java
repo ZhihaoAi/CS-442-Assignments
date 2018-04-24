@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,11 +21,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,17 +37,16 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> fragments;
     private ViewPager pager;
 
-    private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private ArrayList<String> items = new ArrayList<>();
+    private DrawerLayout drawerLayout;
+    private ListView drawerList;
+    private ActionBarDrawerToggle drawerToggle;
+    private ArrayList<String> drawerItems = new ArrayList<>();
+
+    private Menu menu;
 
     private NewsReceiver newsReceiver;
 
-    private HashMap<String, ArrayList<Source>> sourceData = new HashMap<>();
-
-    private Menu opt_menu;
-
+    private HashMap<String, ArrayList<Source>> sourcesByCategory = new HashMap<>();
     private ArrayList<Article> articles = new ArrayList<>();
 
     @Override
@@ -67,12 +62,12 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter(ACTION_NEWS_STORY);
         registerReceiver(newsReceiver, filter);
 
-        mDrawerLayout = findViewById(R.id.drawerLayout);
-        mDrawerList = findViewById(R.id.leftDrawer);
+        drawerLayout = findViewById(R.id.drawerLayout);
+        drawerList = findViewById(R.id.leftDrawer);
 
-        mDrawerList.setAdapter(new ArrayAdapter<>(this,
-                R.layout.drawer_list_item, items));
-        mDrawerList.setOnItemClickListener(
+        drawerList.setAdapter(new ArrayAdapter<>(this,
+                R.layout.drawer_list_item, drawerItems));
+        drawerList.setOnItemClickListener(
                 new ListView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -81,9 +76,9 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-        mDrawerToggle = new ActionBarDrawerToggle(
+        drawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
-                mDrawerLayout,         /* DrawerLayout object */
+                drawerLayout,         /* DrawerLayout object */
                 R.string.drawer_open,  /* "open drawer" description for accessibility */
                 R.string.drawer_close  /* "close drawer" description for accessibility */
         );
@@ -107,21 +102,22 @@ public class MainActivity extends AppCompatActivity {
     private void selectItem(int position) {
 
         pager.setBackground(null);
-        setTitle(items.get(position));
+        setTitle(drawerItems.get(position));
 
         Intent intent = new Intent();
         intent.setAction(ACTION_MSG_TO_SVC);
         String selectedID = null;
-        for (Source s : sourceData.get("all")) {
-            if (s.getName().equals(items.get(position))) {
+        for (Source s : sourcesByCategory.get("all")) {
+            if (s.getName().equals(drawerItems.get(position))) {
                 selectedID = s.getId();
                 break;
             }
         }
         Log.d(TAG, "selectItem: " + selectedID);
         intent.putExtra("SourceID", selectedID);
-        sendBroadcast(intent);
-        mDrawerLayout.closeDrawer(mDrawerList);
+        if (selectedID != null)
+            sendBroadcast(intent);
+        drawerLayout.closeDrawer(drawerList);
     }
 
     private void reDoFragments() {
@@ -146,20 +142,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
+        drawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggles
-        mDrawerToggle.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        opt_menu = menu;
+        this.menu = menu;
         return true;
     }
 
@@ -169,16 +165,16 @@ public class MainActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
+        if (drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
-        items.clear();
-        for (Source s : sourceData.get(item.getTitle())) {
-            items.add(s.getName());
+        drawerItems.clear();
+        for (Source s : sourcesByCategory.get(item.getTitle())) {
+            drawerItems.add(s.getName());
         }
 
-        ((ArrayAdapter) mDrawerList.getAdapter()).notifyDataSetChanged();
+        ((ArrayAdapter) drawerList.getAdapter()).notifyDataSetChanged();
 
         return true;
 
@@ -186,26 +182,34 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSources(ArrayList<Source> sources, ArrayList<String> categories) {
 
-        items.clear();
-        sourceData.clear();
+        drawerItems.clear();
+        sourcesByCategory.clear();
 
         for (Source s : sources) {
-            items.add(s.getName());
-            if (!sourceData.containsKey(s.getCategory())) {
-                sourceData.put(s.getCategory(), new ArrayList<Source>());
+            drawerItems.add(s.getName());
+            if (!sourcesByCategory.containsKey(s.getCategory())) {
+                sourcesByCategory.put(s.getCategory(), new ArrayList<Source>());
             }
-            sourceData.get(s.getCategory()).add(s);
+            sourcesByCategory.get(s.getCategory()).add(s);
         }
-        sourceData.put("all", sources);
+        sourcesByCategory.put("all", sources);
 
         for (String s : categories)
-            opt_menu.add(s);
+            menu.add(s);
 
-        mDrawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, items));
+//        drawerList.setAdapter(new ArrayAdapter<>(this, R.layout.drawer_list_item, drawerItems));
+        ((ArrayAdapter) drawerList.getAdapter()).notifyDataSetChanged();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
 
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(newsReceiver);
+        Intent intent = new Intent(MainActivity.this, NewsService.class);
+        stopService(intent);
+        super.onDestroy();
+    }
 
 //////////////////////////////////////////////////////////////////////////////////////
 

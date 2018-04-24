@@ -18,7 +18,6 @@ import java.util.ArrayList;
 public class NewsService extends Service {
 
     private static final String TAG = "CountService";
-    static final String ACTION_MSG_TO_SVC = "ACTION_MSG_TO_SVC";
     private boolean running = true;
 
     private ArrayList<Article> storyList = new ArrayList<>();
@@ -35,7 +34,7 @@ public class NewsService extends Service {
 
         serviceReceiver = new ServiceReceiver();
 
-        IntentFilter filter = new IntentFilter(ACTION_MSG_TO_SVC);
+        IntentFilter filter = new IntentFilter(MainActivity.ACTION_MSG_TO_SVC);
         registerReceiver(serviceReceiver, filter);
 
         new Thread(new Runnable() {
@@ -56,8 +55,6 @@ public class NewsService extends Service {
                         storyList.clear();
                     }
                 }
-                Toast.makeText(NewsService.this, "Service shut down", Toast.LENGTH_SHORT).show();
-
                 Log.d(TAG, "run: Ending loop");
             }
         }).start();
@@ -67,8 +64,9 @@ public class NewsService extends Service {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "onDestroy: Service Destroyed");
         running = false;
+        unregisterReceiver(serviceReceiver);
         super.onDestroy();
     }
 
@@ -83,7 +81,7 @@ public class NewsService extends Service {
         public void onReceive(Context context, Intent intent) {
 
             switch (intent.getAction()) {
-                case ACTION_MSG_TO_SVC:
+                case MainActivity.ACTION_MSG_TO_SVC:
                     String source = "";
                     if (intent.hasExtra("SourceID"))
                         source = intent.getStringExtra("SourceID");

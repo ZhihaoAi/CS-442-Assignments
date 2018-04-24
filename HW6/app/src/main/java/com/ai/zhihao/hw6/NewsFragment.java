@@ -3,7 +3,9 @@ package com.ai.zhihao.hw6;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -76,6 +78,7 @@ public class NewsFragment extends Fragment implements View.OnClickListener {
         ((TextView) v.findViewById(R.id.tvAuthor)).setText(author);
         ((TextView) v.findViewById(R.id.tvDescription)).setText(description);
         ((TextView) v.findViewById(R.id.tvDescription)).setOnClickListener(this);
+        ((TextView) v.findViewById(R.id.tvDescription)).setMovementMethod(new ScrollingMovementMethod());
         ((TextView) v.findViewById(R.id.tvCount)).setText(count);
 
         final ImageView imageView = v.findViewById(R.id.imageView);
